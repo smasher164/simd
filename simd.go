@@ -50,7 +50,7 @@ func U16x8(u1, u2, u3, u4, u5, u6, u7, u8 uint16) (v V128) {
 	return
 }
 
-func U32x4(u1, u2, u3, u4 uint32) V128 {
+func U32x4(u1, u2, u3, u4 uint32) (v V128) {
 	*(*u32x4)(unsafe.Pointer(&v)) = u32x4{u1, u2, u3, u4}
 	return
 }
@@ -162,52 +162,52 @@ func ExtractLaneF32(v V128, i int) float32 { return (*(*f32x4)(unsafe.Pointer(&v
 func ExtractLaneF64(v V128, i int) float64 { return (*(*f64x2)(unsafe.Pointer(&v)))[i] }
 
 func ReplaceLaneI8(v V128, i int, x int8) V128 {
-	*(*i8x16)(unsafe.Pointer(&v))[i] = x
+	(*(*i8x16)(unsafe.Pointer(&v)))[i] = x
 	return v
 }
 func ReplaceLaneI16(v V128, i int, x int16) V128 {
-	*(*i16x8)(unsafe.Pointer(&v))[i] = x
+	(*(*i16x8)(unsafe.Pointer(&v)))[i] = x
 	return v
 }
 func ReplaceLaneI32(v V128, i int, x int32) V128 {
-	*(*i32x4)(unsafe.Pointer(&v))[i] = x
+	(*(*i32x4)(unsafe.Pointer(&v)))[i] = x
 	return v
 }
 func ReplaceLaneI64(v V128, i int, x int64) V128 {
-	*(*i64x2)(unsafe.Pointer(&v))[i] = x
+	(*(*i64x2)(unsafe.Pointer(&v)))[i] = x
 	return v
 }
 func ReplaceLaneU8(v V128, i int, x uint8) V128 {
-	*(*u8x16)(unsafe.Pointer(&v))[i] = x
+	(*(*u8x16)(unsafe.Pointer(&v)))[i] = x
 	return v
 }
 func ReplaceLaneU16(v V128, i int, x uint16) V128 {
-	*(*u16x8)(unsafe.Pointer(&v))[i] = x
+	(*(*u16x8)(unsafe.Pointer(&v)))[i] = x
 	return v
 }
 func ReplaceLaneU32(v V128, i int, x uint32) V128 {
-	*(*u32x4)(unsafe.Pointer(&v))[i] = x
+	(*(*u32x4)(unsafe.Pointer(&v)))[i] = x
 	return v
 }
 func ReplaceLaneU64(v V128, i int, x uint64) V128 {
-	*(*u64x2)(unsafe.Pointer(&v))[i] = x
+	(*(*u64x2)(unsafe.Pointer(&v)))[i] = x
 	return v
 }
 func ReplaceLaneF32(v V128, i int, x float32) V128 {
-	*(*f32x4)(unsafe.Pointer(&v))[i] = x
+	(*(*f32x4)(unsafe.Pointer(&v)))[i] = x
 	return v
 }
 func ReplaceLaneF64(v V128, i int, x float64) V128 {
-	*(*f64x2)(unsafe.Pointer(&v))[i] = x
+	(*(*f64x2)(unsafe.Pointer(&v)))[i] = x
 	return v
 }
 
 func Shuffle(a, b V128, s [16]int) (v V128) {
 	for i := 0; i < 16; i++ {
 		if s[i] < 16 {
-			v.b[i] = a[s[i]]
+			v.b[i] = a.b[s[i]]
 		} else {
-			v.b[i] = b[s[i]] - 16
+			v.b[i] = b.b[s[i]-16]
 		}
 	}
 	return v
@@ -216,7 +216,7 @@ func Shuffle(a, b V128, s [16]int) (v V128) {
 func Swizzle(a, s V128) (v V128) {
 	for i := 0; i < 16; i++ {
 		if s.b[i] < 16 {
-			v.b[i] = a[s[i]]
+			v.b[i] = a.b[s.b[i]]
 		}
 	}
 	return v
@@ -601,7 +601,7 @@ func SaturatedAddI64(a, b V128) V128 {
 		ux, uy := uint64(x[i]), uint64(y[i])
 		usum := ux + uy
 		ux = (usum >> 63) + 9223372036854775807
-		if int64(ux^uy)|^(uy^usum) >= 0 {
+		if int64((ux^uy)|^(uy^usum)) >= 0 {
 			usum = ux
 		}
 		r[i] = int64(usum)
@@ -724,7 +724,7 @@ func SaturatedSubI64(a, b V128) V128 {
 		ux, uy := uint64(x[i]), uint64(y[i])
 		udiff := ux - uy
 		ux = (udiff >> 63) + 9223372036854775807
-		if int64(ux^uy)&(ux^udiff) < 0 {
+		if int64((ux^uy)&(ux^udiff)) < 0 {
 			udiff = ux
 		}
 		r[i] = int64(udiff)
@@ -789,8 +789,7 @@ func SaturatedSubU64(a, b V128) V128 {
 }
 
 func ShlI8(a V128, y uint) V128 {
-	var r i8x16
-	x := *(*i8x16)(unsafe.Pointer(&a))
+	r := *(*i8x16)(unsafe.Pointer(&a))
 	for i := range r {
 		r[i] <<= y
 	}
@@ -798,8 +797,7 @@ func ShlI8(a V128, y uint) V128 {
 }
 
 func ShlI16(a V128, y uint) V128 {
-	var r i16x8
-	x := *(*i16x8)(unsafe.Pointer(&a))
+	r := *(*i16x8)(unsafe.Pointer(&a))
 	for i := range r {
 		r[i] <<= y
 	}
@@ -807,8 +805,7 @@ func ShlI16(a V128, y uint) V128 {
 }
 
 func ShlI32(a V128, y uint) V128 {
-	var r i32x4
-	x := *(*i32x4)(unsafe.Pointer(&a))
+	r := *(*i32x4)(unsafe.Pointer(&a))
 	for i := range r {
 		r[i] <<= y
 	}
@@ -816,8 +813,7 @@ func ShlI32(a V128, y uint) V128 {
 }
 
 func ShlI64(a V128, y uint) V128 {
-	var r i64x2
-	x := *(*i64x2)(unsafe.Pointer(&a))
+	r := *(*i64x2)(unsafe.Pointer(&a))
 	for i := range r {
 		r[i] <<= y
 	}
@@ -825,8 +821,7 @@ func ShlI64(a V128, y uint) V128 {
 }
 
 func ShrI8(a V128, y uint) V128 {
-	var r i8x16
-	x := *(*i8x16)(unsafe.Pointer(&a))
+	r := *(*i8x16)(unsafe.Pointer(&a))
 	for i := range r {
 		r[i] >>= y
 	}
@@ -834,8 +829,7 @@ func ShrI8(a V128, y uint) V128 {
 }
 
 func ShrI16(a V128, y uint) V128 {
-	var r i16x8
-	x := *(*i16x8)(unsafe.Pointer(&a))
+	r := *(*i16x8)(unsafe.Pointer(&a))
 	for i := range r {
 		r[i] >>= y
 	}
@@ -843,8 +837,7 @@ func ShrI16(a V128, y uint) V128 {
 }
 
 func ShrI32(a V128, y uint) V128 {
-	var r i32x4
-	x := *(*i32x4)(unsafe.Pointer(&a))
+	r := *(*i32x4)(unsafe.Pointer(&a))
 	for i := range r {
 		r[i] >>= y
 	}
@@ -852,8 +845,7 @@ func ShrI32(a V128, y uint) V128 {
 }
 
 func ShrI64(a V128, y uint) V128 {
-	var r i64x2
-	x := *(*i64x2)(unsafe.Pointer(&a))
+	r := *(*i64x2)(unsafe.Pointer(&a))
 	for i := range r {
 		r[i] >>= y
 	}
@@ -861,8 +853,7 @@ func ShrI64(a V128, y uint) V128 {
 }
 
 func ShrU8(a V128, y uint) V128 {
-	var r u8x16
-	x := *(*u8x16)(unsafe.Pointer(&a))
+	r := *(*u8x16)(unsafe.Pointer(&a))
 	for i := range r {
 		r[i] >>= y
 	}
@@ -870,8 +861,7 @@ func ShrU8(a V128, y uint) V128 {
 }
 
 func ShrU16(a V128, y uint) V128 {
-	var r u16x8
-	x := *(*u16x8)(unsafe.Pointer(&a))
+	r := *(*u16x8)(unsafe.Pointer(&a))
 	for i := range r {
 		r[i] >>= y
 	}
@@ -879,8 +869,7 @@ func ShrU16(a V128, y uint) V128 {
 }
 
 func ShrU32(a V128, y uint) V128 {
-	var r u32x4
-	x := *(*u32x4)(unsafe.Pointer(&a))
+	r := *(*u32x4)(unsafe.Pointer(&a))
 	for i := range r {
 		r[i] >>= y
 	}
@@ -888,8 +877,7 @@ func ShrU32(a V128, y uint) V128 {
 }
 
 func ShrU64(a V128, y uint) V128 {
-	var r u64x2
-	x := *(*u64x2)(unsafe.Pointer(&a))
+	r := *(*u64x2)(unsafe.Pointer(&a))
 	for i := range r {
 		r[i] >>= y
 	}
@@ -1575,7 +1563,7 @@ func NegF32(a V128) V128 {
 	for i := range x {
 		x[i] = math.Float32frombits(math.Float32bits(x[i]) ^ 1<<31)
 	}
-	return x
+	return *(*V128)(unsafe.Pointer(&x))
 }
 
 func NegF64(a V128) V128 {
@@ -1583,11 +1571,11 @@ func NegF64(a V128) V128 {
 	for i := range x {
 		x[i] = math.Float64frombits(math.Float64bits(x[i]) ^ 1<<63)
 	}
-	return x
+	return *(*V128)(unsafe.Pointer(&x))
 }
 
 func absf32(f float32) float32 {
-	return math.Float32frombits(math.Float32bits(x) &^ (1 << 31))
+	return math.Float32frombits(math.Float32bits(f) &^ (1 << 31))
 }
 
 func AbsF32(a V128) V128 {
@@ -1595,7 +1583,7 @@ func AbsF32(a V128) V128 {
 	for i := range x {
 		x[i] = absf32(x[i])
 	}
-	return x
+	return *(*V128)(unsafe.Pointer(&x))
 }
 
 func AbsF64(a V128) V128 {
@@ -1603,7 +1591,7 @@ func AbsF64(a V128) V128 {
 	for i := range x {
 		x[i] = math.Abs(x[i])
 	}
-	return x
+	return *(*V128)(unsafe.Pointer(&x))
 }
 
 func MinF32(a, b V128) V128 {
@@ -1650,7 +1638,7 @@ func SqrtF32(a V128) V128 {
 	var r f32x4
 	x := *(*f32x4)(unsafe.Pointer(&a))
 	for i := range r {
-		r[i] = float32(math.Sqrt(float64(x)))
+		r[i] = float32(math.Sqrt(float64(x[i])))
 	}
 	return *(*V128)(unsafe.Pointer(&r))
 }
